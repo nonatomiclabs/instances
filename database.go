@@ -2,7 +2,6 @@ package instances
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -42,11 +41,11 @@ func (d *Database) AddInstance(id string, name string, cloudProvider CloudProvid
 	log.Printf("adding instance %s", id)
 
 	if _, instanceExists := d.Instances[name]; instanceExists {
-		return fmt.Errorf("instance %s exists already", name)
+		return fmt.Errorf("instance %q exists already", name)
 	}
 
 	_, err := cloudProvider.GetInstanceStatus(id)
-	if errors.Is(err, ErrInstanceNotFound) {
+	if err != nil {
 		return err
 	}
 

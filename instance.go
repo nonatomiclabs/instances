@@ -1,7 +1,6 @@
 package instances
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -12,8 +11,6 @@ const (
 	InstanceStateRunning InstanceState = "running"
 	InstanceStateStopped InstanceState = "stopped"
 )
-
-var ErrInstanceNotFound = errors.New("instance not found")
 
 type Instance struct {
 	Id                string `json:"id"`

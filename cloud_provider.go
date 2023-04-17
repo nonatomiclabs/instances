@@ -25,7 +25,7 @@ func (m MockAWSCloud) StopInstance(id string) error {
 func (m MockAWSCloud) GetInstanceStatus(id string) (InstanceState, error) {
 	switch id {
 	case "NotExist":
-		return "", ErrInstanceNotFound
+		return "", fmt.Errorf("instance %q not found in the cloud provider", id)
 	case "Running":
 		return InstanceStateRunning, nil
 	case "Stopped":
