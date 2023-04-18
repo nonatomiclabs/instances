@@ -37,6 +37,7 @@ func (d *Database) Save(w io.Writer) error {
 	return nil
 }
 
+// AddInstance adds an instance to the database.
 func (d *Database) AddInstance(id string, name string, cloudProvider CloudProvider) error {
 	log.Printf("adding instance %s", id)
 
@@ -54,6 +55,7 @@ func (d *Database) AddInstance(id string, name string, cloudProvider CloudProvid
 	return nil
 }
 
+// GetInstance gets an instance from the database
 func (d *Database) GetInstance(name string) (Instance, error) {
 	instance, instanceExists := d.Instances[name]
 	if !instanceExists {
@@ -62,6 +64,7 @@ func (d *Database) GetInstance(name string) (Instance, error) {
 	return instance, nil
 }
 
+// RemoveInstance removes an instance from the database
 func (d *Database) RemoveInstance(name string) error {
 	_, instanceExists := d.Instances[name]
 	if !instanceExists {
