@@ -2,6 +2,7 @@ package instances_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -22,10 +23,11 @@ func errorContains(err error, want string) bool {
 }
 
 const existingInstanceId = "exists"
+const existingInstanceName = "myInstance"
 
-type mockCloudProvider struct{}
+type MockCloudProvider struct{}
 
-func (m mockCloudProvider) GetInstanceStatus(id string) (instances.InstanceState, error) {
+func (m MockCloudProvider) GetInstanceStatus(id string) (instances.InstanceState, error) {
 	switch id {
 	case existingInstanceId:
 		return instances.InstanceStateRunning, nil
@@ -34,15 +36,15 @@ func (m mockCloudProvider) GetInstanceStatus(id string) (instances.InstanceState
 	}
 }
 
-func (m mockCloudProvider) StartInstance(id string) error {
+func (m MockCloudProvider) StartInstance(id string) error {
 	return nil
 }
 
-func (m mockCloudProvider) StopInstance(id string) error {
+func (m MockCloudProvider) StopInstance(id string) error {
 	return nil
 }
 
-func (m mockCloudProvider) GetName() string {
+func (m MockCloudProvider) GetName() string {
 	return ""
 }
 
@@ -96,7 +98,7 @@ func TestAddInstanceCloudProviderCheck(t *testing.T) {
 				t.Fatalf("could not acquire db: %s", err)
 			}
 
-			err = db.AddInstance(test.instanceId, "instanceName", mockCloudProvider{})
+			err = db.AddInstance(test.instanceId, "instanceName", MockCloudProvider{})
 
 			if !errorContains(err, test.wantErr) {
 				t.Fatalf("unexpected error: %v", err)
@@ -114,6 +116,10 @@ func TestAddInstanceNameCheck(t *testing.T) {
 			instanceName: "alreadyPresent",
 			wantErr:      "exists already",
 		},
+		"instance does not exist yet": {
+			instanceName: "aNewInstance",
+			wantErr:      "",
+		},
 	}
 
 	for name, test := range tests {
@@ -124,15 +130,106 @@ func TestAddInstanceNameCheck(t *testing.T) {
 				t.Fatalf("could not acquire db: %s", err)
 			}
 
-			err = db.AddInstance(existingInstanceId, "alreadyPresent", mockCloudProvider{})
+			err = db.AddInstance(existingInstanceId, "alreadyPresent", MockCloudProvider{})
 			if err != nil {
 				t.Fatal("failed to add pre-required instance")
 			}
 
-			err = db.AddInstance(existingInstanceId, test.instanceName, mockCloudProvider{})
+			err = db.AddInstance(existingInstanceId, test.instanceName, MockCloudProvider{})
 			if !errorContains(err, test.wantErr) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 		})
+	}
+}
+
+func getInitializedDatabase() (*instances.Database, error) {
+	buf := bytes.NewBufferString("{\"instances\": {}}")
+	db, err := instances.NewDatabase(buf)
+	if err != nil {
+		return nil, fmt.Errorf("could not acquire db: %s", err)
+	}
+
+	err = db.AddInstance(existingInstanceId, existingInstanceName, MockCloudProvider{})
+	if err != nil {
+		return nil, errors.New("failed to add pre-required instance")
+	}
+	return db, nil
+}
+
+func TestGetInstance(t *testing.T) {
+	tests := map[string]struct {
+		instanceName string
+		wantErr      string
+	}{
+		"existing instance": {
+			instanceName: existingInstanceName,
+			wantErr:      "",
+		},
+		"nonexisting instance": {
+			instanceName: "iDontExist",
+			wantErr:      "no instance named",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			db, err := getInitializedDatabase()
+			if err != nil {
+				t.Fatalf("test setup failed: %v", err)
+			}
+
+			_, err = db.GetInstance(test.instanceName)
+			if !errorContains(err, test.wantErr) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestRemoveInstance(t *testing.T) {
+	tests := map[string]struct {
+		instanceName string
+		wantErr      string
+	}{
+		"existing instance": {
+			instanceName: existingInstanceName,
+			wantErr:      "",
+		},
+		"nonexisting instance": {
+			instanceName: "iDontExist",
+			wantErr:      "no instance named",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			db, err := getInitializedDatabase()
+			if err != nil {
+				t.Fatalf("test setup failed: %v", err)
+			}
+
+			err = db.RemoveInstance(test.instanceName)
+			if !errorContains(err, test.wantErr) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestSaveDatabase(t *testing.T) {
+	db, err := getInitializedDatabase()
+	if err != nil {
+		t.Fatalf("test setup failed: %v", err)
+	}
+
+	var bufOut bytes.Buffer
+	err = db.Save(&bufOut)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bufOut.Len() == 0 {
+		t.Fatal("saving database did not write any content")
 	}
 }
