@@ -20,6 +20,7 @@ func getInitializedCLI() (*instances.CLI, error) {
 }
 
 func TestAddInstanceCLI(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		args    []string
 		wantErr string
@@ -70,6 +71,7 @@ func TestAddInstanceCLI(t *testing.T) {
 }
 
 func TestRemoveInstanceCLI(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		args    []string
 		wantErr string

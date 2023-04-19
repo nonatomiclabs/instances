@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetCloudProvider(t *testing.T) {
+	t.Parallel()
 	cloudProviders := map[string]instances.CloudProvider{
 		"mock": MockCloudProvider{},
 	}

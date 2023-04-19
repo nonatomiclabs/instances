@@ -50,6 +50,7 @@ func (m MockCloudProvider) GetName() string {
 }
 
 func TestNewDatabase(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		payload string
 		wantErr string
@@ -77,6 +78,7 @@ func TestNewDatabase(t *testing.T) {
 }
 
 func TestAddInstanceDBCloudProviderCheck(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		instanceId string
 		wantErr    string
@@ -109,6 +111,7 @@ func TestAddInstanceDBCloudProviderCheck(t *testing.T) {
 }
 
 func TestAddInstanceDBNameCheck(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
@@ -145,6 +148,7 @@ func TestAddInstanceDBNameCheck(t *testing.T) {
 }
 
 func TestAddInstanceDBIdCheck(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		instanceId string
 		wantErr    string
@@ -185,6 +189,7 @@ func getInitializedDatabase() (*instances.Database, error) {
 }
 
 func TestGetInstanceDB(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
@@ -215,6 +220,7 @@ func TestGetInstanceDB(t *testing.T) {
 }
 
 func TestRemoveInstanceDB(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
@@ -245,6 +251,7 @@ func TestRemoveInstanceDB(t *testing.T) {
 }
 
 func TestSaveDatabase(t *testing.T) {
+	t.Parallel()
 	db, err := getInitializedDatabase()
 	if err != nil {
 		t.Fatalf("test setup failed: %v", err)
