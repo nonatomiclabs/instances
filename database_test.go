@@ -76,7 +76,7 @@ func TestNewDatabase(t *testing.T) {
 	}
 }
 
-func TestAddInstanceCloudProviderCheck(t *testing.T) {
+func TestAddInstanceDBCloudProviderCheck(t *testing.T) {
 	tests := map[string]struct {
 		instanceId string
 		wantErr    string
@@ -108,7 +108,7 @@ func TestAddInstanceCloudProviderCheck(t *testing.T) {
 	}
 }
 
-func TestAddInstanceNameCheck(t *testing.T) {
+func TestAddInstanceDBNameCheck(t *testing.T) {
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
@@ -144,7 +144,7 @@ func TestAddInstanceNameCheck(t *testing.T) {
 	}
 }
 
-func TestAddInstanceIdCheck(t *testing.T) {
+func TestAddInstanceDBIdCheck(t *testing.T) {
 	tests := map[string]struct {
 		instanceId string
 		wantErr    string
@@ -184,7 +184,7 @@ func getInitializedDatabase() (*instances.Database, error) {
 	return db, nil
 }
 
-func TestGetInstance(t *testing.T) {
+func TestGetInstanceDB(t *testing.T) {
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
@@ -214,7 +214,7 @@ func TestGetInstance(t *testing.T) {
 	}
 }
 
-func TestRemoveInstance(t *testing.T) {
+func TestRemoveInstanceDB(t *testing.T) {
 	tests := map[string]struct {
 		instanceName string
 		wantErr      string
