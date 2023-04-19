@@ -22,14 +22,15 @@ func errorContains(err error, want string) bool {
 	return strings.Contains(err.Error(), want)
 }
 
-const existingInstanceId = "exists"
+var existingInstanceIds = []string{"existingInstance1", "existingInstance2"}
+
 const existingInstanceName = "myInstance"
 
 type MockCloudProvider struct{}
 
 func (m MockCloudProvider) GetInstanceStatus(id string) (instances.InstanceState, error) {
 	switch id {
-	case existingInstanceId:
+	case existingInstanceIds[0], existingInstanceIds[1]:
 		return instances.InstanceStateRunning, nil
 	default:
 		return "", fmt.Errorf("instance %q not found in the cloud provider", id)
@@ -81,7 +82,7 @@ func TestAddInstanceCloudProviderCheck(t *testing.T) {
 		wantErr    string
 	}{
 		"instance exists in cloud provider": {
-			instanceId: existingInstanceId,
+			instanceId: existingInstanceIds[0],
 			wantErr:    "",
 		},
 		"instance does not exist in cloud provider": {
@@ -130,12 +131,38 @@ func TestAddInstanceNameCheck(t *testing.T) {
 				t.Fatalf("could not acquire db: %s", err)
 			}
 
-			err = db.AddInstance(existingInstanceId, "alreadyPresent", MockCloudProvider{})
+			err = db.AddInstance(existingInstanceIds[0], "alreadyPresent", MockCloudProvider{})
 			if err != nil {
 				t.Fatal("failed to add pre-required instance")
 			}
 
-			err = db.AddInstance(existingInstanceId, test.instanceName, MockCloudProvider{})
+			err = db.AddInstance(existingInstanceIds[1], test.instanceName, MockCloudProvider{})
+			if !errorContains(err, test.wantErr) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestAddInstanceIdCheck(t *testing.T) {
+	tests := map[string]struct {
+		instanceId string
+		wantErr    string
+	}{
+		"instance exists already in the database": {
+			instanceId: existingInstanceIds[0],
+			wantErr:    "already referenced",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			db, err := getInitializedDatabase()
+			if err != nil {
+				t.Fatalf("test setup failed: %v", err)
+			}
+
+			err = db.AddInstance(test.instanceId, "testInstance", MockCloudProvider{})
 			if !errorContains(err, test.wantErr) {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -150,7 +177,7 @@ func getInitializedDatabase() (*instances.Database, error) {
 		return nil, fmt.Errorf("could not acquire db: %s", err)
 	}
 
-	err = db.AddInstance(existingInstanceId, existingInstanceName, MockCloudProvider{})
+	err = db.AddInstance(existingInstanceIds[0], existingInstanceName, MockCloudProvider{})
 	if err != nil {
 		return nil, errors.New("failed to add pre-required instance")
 	}

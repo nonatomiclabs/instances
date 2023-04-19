@@ -45,6 +45,12 @@ func (d *Database) AddInstance(id string, name string, cloudProvider CloudProvid
 		return fmt.Errorf("instance %q exists already", name)
 	}
 
+	for instanceName, instance := range d.Instances {
+		if instance.Id == id {
+			return fmt.Errorf("instance id %q already referenced by instance %q", id, instanceName)
+		}
+	}
+
 	_, err := cloudProvider.GetInstanceStatus(id)
 	if err != nil {
 		return err
