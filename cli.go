@@ -42,7 +42,7 @@ func (c *CLI) Run(args []string) error {
 
 func (c *CLI) addInstance(args []string) error {
 	var cloudName, instanceName string
-	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	addCmd := flag.NewFlagSet("add", flag.ContinueOnError)
 	addCmd.Usage = func() {
 		fmt.Print(
 			"Usage: instances add [OPTIONS] INSTANCE_ID\n\n",
@@ -84,7 +84,7 @@ func (c *CLI) addInstance(args []string) error {
 }
 
 func (c *CLI) removeInstance(args []string) error {
-	removeCmd := flag.NewFlagSet("rm", flag.ExitOnError)
+	removeCmd := flag.NewFlagSet("rm", flag.ContinueOnError)
 	removeCmd.Usage = func() {
 		fmt.Print(
 			"Usage: instances rm INSTANCE_NAME\n\n",
@@ -107,7 +107,7 @@ func (c *CLI) removeInstance(args []string) error {
 }
 
 func (c *CLI) getInstanceStatus(args []string) error {
-	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
+	statusCmd := flag.NewFlagSet("status", flag.ContinueOnError)
 	statusCmd.Usage = func() {
 		fmt.Print(
 			"Usage: instances status INSTANCE_NAME\n\n",
@@ -146,7 +146,7 @@ func (c *CLI) getInstanceStatus(args []string) error {
 }
 
 func (c *CLI) startInstance(args []string) error {
-	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
+	startCmd := flag.NewFlagSet("start", flag.ContinueOnError)
 	startCmd.Usage = func() {
 		fmt.Print(
 			"Usage: instances start INSTANCE_NAME\n\n",
@@ -179,7 +179,7 @@ func (c *CLI) startInstance(args []string) error {
 }
 
 func (c *CLI) stopInstance(args []string) error {
-	stopCmd := flag.NewFlagSet("stop", flag.ExitOnError)
+	stopCmd := flag.NewFlagSet("stop", flag.ContinueOnError)
 	stopCmd.Usage = func() {
 		fmt.Print(
 			"Usage: instances stop INSTANCE_NAME\n\n",
@@ -213,7 +213,7 @@ func (c *CLI) stopInstance(args []string) error {
 
 func (c *CLI) listInstances(args []string) error {
 	var cloudName string
-	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	listCmd := flag.NewFlagSet("list", flag.ContinueOnError)
 	listCmd.StringVar(&cloudName, "cloud", "", "the cloud provider to list instances from")
 	listCmd.Usage = func() {
 		fmt.Print(
