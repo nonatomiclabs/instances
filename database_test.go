@@ -46,7 +46,7 @@ func (m MockCloudProvider) StopInstance(id string) error {
 }
 
 func (m MockCloudProvider) GetName() string {
-	return ""
+	return "mock"
 }
 
 func TestNewDatabase(t *testing.T) {

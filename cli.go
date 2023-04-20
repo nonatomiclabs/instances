@@ -128,12 +128,7 @@ func (c *CLI) getInstanceStatus(args []string) error {
 
 	cloudProvider, err := instance.GetCloudProvider(c.cloudProviders)
 	if err != nil {
-		return err
-	}
-
-	err = cloudProvider.StartInstance(instance.Id)
-	if err != nil {
-		return err
+		return fmt.Errorf("could not get instance status: %v", err)
 	}
 
 	status, err := cloudProvider.GetInstanceStatus(instance.Id)
