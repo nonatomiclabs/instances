@@ -6,20 +6,8 @@ import (
 	"github.com/nonatomiclabs/instances"
 )
 
-func getInitializedCLI() (*instances.CLI, error) {
-	db, err := getInitializedDatabase()
-	if err != nil {
-		return nil, err
-	}
-
-	cloudProviders := map[string]instances.CloudProvider{
-		"mock": MockCloudProvider{},
-	}
-
-	return instances.NewCLI(db, cloudProviders), nil
-}
-
 func TestCLI(t *testing.T) {
+	t.Parallel()
 	tests := map[string]struct {
 		args    []string
 		wantErr string
@@ -32,260 +20,134 @@ func TestCLI(t *testing.T) {
 			args:    []string{"johndoe"},
 			wantErr: "unknown subcommand",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(test.args)
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
-func TestAddInstanceCLI(t *testing.T) {
-	t.Parallel()
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"no arguments": {
-			args:    []string{},
+		"add - no arguments": {
+			args:    []string{"add"},
 			wantErr: "missing instance ID",
 		},
-		"wrong arguments": {
-			args:    []string{"--cloud-provider", "aws"},
+		"add - wrong arguments": {
+			args:    []string{"add", "--cloud-provider", "aws"},
 			wantErr: "flag provided but not defined",
 		},
-		"existing instance name": {
-			args:    []string{"--name", existingInstanceName, "--cloud", "mock", existingInstanceIds[1]},
+		"add - existing instance name": {
+			args:    []string{"add", "--name", existingInstanceName, "--cloud", "mock", existingInstanceIds[1]},
 			wantErr: "exists already",
 		},
-		"existing instance id": {
-			args:    []string{"--name", "testInstance", "--cloud", "mock", existingInstanceIds[0]},
+		"add - existing instance id": {
+			args:    []string{"add", "--name", "testInstance", "--cloud", "mock", existingInstanceIds[0]},
 			wantErr: "already referenced",
 		},
-		"multiple instance ids": {
-			args:    []string{"--name", "testInstance", "--cloud", "mock", "anInstanceId", "anotherInstanceId"},
+		"add - multiple instance ids": {
+			args:    []string{"add", "--name", "testInstance", "--cloud", "mock", "anInstanceId", "anotherInstanceId"},
 			wantErr: "only one instance",
 		},
-		"nonexisting cloud provider": {
-			args:    []string{"--name", "testInstance", "--cloud", "myGreatCloud", existingInstanceIds[1]},
+		"add - nonexisting cloud provider": {
+			args:    []string{"add", "--name", "testInstance", "--cloud", "myGreatCloud", existingInstanceIds[1]},
 			wantErr: "unsupported cloud provider",
 		},
-		"successful add": {
-			args:    []string{"--name", "testInstance", "--cloud", "mock", existingInstanceIds[1]},
+		"add - new instance": {
+			args:    []string{"add", "--name", "testInstance", "--cloud", "mock", existingInstanceIds[1]},
 			wantErr: "",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(append([]string{"add"}, test.args...))
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
-func TestRemoveInstanceCLI(t *testing.T) {
-	t.Parallel()
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"existing instance": {
-			args:    []string{existingInstanceName},
+		"remove - existing instance": {
+			args:    []string{"rm", existingInstanceName},
 			wantErr: "",
 		},
-		"nonexisting instance": {
-			args:    []string{"anInstance"},
+		"remove - nonexisting instance": {
+			args:    []string{"rm", "anInstance"},
 			wantErr: "no instance named",
 		},
-		"no arguments": {
-			args:    []string{},
+		"remove - no arguments": {
+			args:    []string{"rm"},
 			wantErr: "missing instance name",
 		},
-		"multiple instances": {
-			args:    []string{"anInstance", "anotherInstance"},
+		"remove - multiple instances": {
+			args:    []string{"rm", "anInstance", "anotherInstance"},
 			wantErr: "only one instance",
 		},
-		"wrong flags": {
-			args:    []string{"--option", "value"},
+		"remove - wrong flags": {
+			args:    []string{"rm", "--option", "value"},
 			wantErr: "flag provided but not defined",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(append([]string{"rm"}, test.args...))
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-		})
-	}
-}
-
-func TestGetInstanceStatusCLI(t *testing.T) {
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"valid instance": {
-			args:    []string{existingInstanceName},
+		"status - existing instance": {
+			args:    []string{"status", existingInstanceName},
 			wantErr: "",
 		},
-		"nonexisting instance": {
-			args:    []string{"anInstance"},
+		"status - nonexisting instance": {
+			args:    []string{"status", "anInstance"},
 			wantErr: "no instance named",
 		},
-		"no arguments": {
-			args:    []string{},
+		"status - no arguments": {
+			args:    []string{"status"},
 			wantErr: "missing instance name",
 		},
-		"wrong arguments": {
-			args:    []string{"--option", "value"},
+		"status - wrong arguments": {
+			args:    []string{"status", "--option", "value"},
 			wantErr: "flag provided but not defined",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(append([]string{"status"}, test.args...))
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-		})
-	}
-}
-
-func TestStartInstance(t *testing.T) {
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"valid instance": {
-			args:    []string{existingInstanceName},
+		"start - existing instance": {
+			args:    []string{"start", existingInstanceName},
 			wantErr: "",
 		},
-		"invalid instance": {
-			args:    []string{"anInstance"},
+		"start - nonexisting instance": {
+			args:    []string{"start", "anInstance"},
 			wantErr: "no instance named",
 		},
-		"no arguments": {
-			args:    []string{},
+		"start - no arguments": {
+			args:    []string{"start"},
 			wantErr: "missing instance name",
 		},
-		"wrong arguments": {
-			args:    []string{"--option", "value"},
+		"start - wrong arguments": {
+			args:    []string{"start", "--option", "value"},
 			wantErr: "flag provided but not defined",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(append([]string{"start"}, test.args...))
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
-func TestStopInstance(t *testing.T) {
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"valid instance": {
-			args:    []string{existingInstanceName},
+		"stop - existing instance": {
+			args:    []string{"stop", existingInstanceName},
 			wantErr: "",
 		},
-		"invalid instance": {
-			args:    []string{"anInstance"},
+		"stop - nonexisting instance": {
+			args:    []string{"stop", "anInstance"},
 			wantErr: "no instance named",
 		},
-		"no arguments": {
-			args:    []string{},
+		"stop - no arguments": {
+			args:    []string{"stop"},
 			wantErr: "missing instance name",
 		},
-		"wrong arguments": {
-			args:    []string{"--option", "value"},
+		"stop - wrong arguments": {
+			args:    []string{"stop", "--option", "value"},
 			wantErr: "flag provided but not defined",
 		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
-			if err != nil {
-				t.Fatalf("test setup failed: %v", err)
-			}
-
-			err = cli.Run(append([]string{"stop"}, test.args...))
-			if !errorContains(err, test.wantErr) {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
-func TestListInstance(t *testing.T) {
-	tests := map[string]struct {
-		args    []string
-		wantErr string
-	}{
-		"no arguments": {
-			args:    []string{},
+		"list - no arguments": {
+			args:    []string{"list"},
 			wantErr: "",
 		},
-		"wrong arguments": {
-			args:    []string{"--option", "value"},
+		"list - arguments": {
+			args:    []string{"list", existingInstanceName},
+			wantErr: "list doesn't take positional arguments",
+		},
+		"list - wrong options": {
+			args:    []string{"list", "--option", "value"},
 			wantErr: "flag provided but not defined",
 		},
-		"valid arguments": {
-			args:    []string{"--cloud", "mock"},
+		"list - valid options": {
+			args:    []string{"list", "--cloud", "mock"},
 			wantErr: "",
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			cli, err := getInitializedCLI()
+			db, err := getInitializedDatabase()
 			if err != nil {
 				t.Fatalf("test setup failed: %v", err)
 			}
 
-			err = cli.Run(append([]string{"list"}, test.args...))
+			cloudProviders := map[string]instances.CloudProvider{
+				"mock": MockCloudProvider{},
+			}
+
+			cli := instances.NewCLI(db, cloudProviders)
+
+			err = cli.Run(test.args)
 			if !errorContains(err, test.wantErr) {
 				t.Fatalf("unexpected error: %v", err)
 			}
