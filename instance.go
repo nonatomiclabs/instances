@@ -8,8 +8,12 @@ import (
 type InstanceState string
 
 const (
-	InstanceStateRunning InstanceState = "running"
-	InstanceStateStopped InstanceState = "stopped"
+	InstanceStatePending      InstanceState = "pending"
+	InstanceStateRunning      InstanceState = "running"
+	InstanceStateShuttingDown InstanceState = "shutting-down"
+	InstanceStateStopping     InstanceState = "stopping"
+	InstanceStateStopped      InstanceState = "stopped"
+	InstanceStateTerminated   InstanceState = "terminated"
 )
 
 type Instance struct {

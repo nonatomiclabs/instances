@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/nonatomiclabs/instances"
 )
 
@@ -40,15 +45,28 @@ func openDatabase(filePath string) (*instances.Database, error) {
 }
 
 func main() {
-	const dbPath = "/Users/jean/Code/instances/sample_config_2.json"
+	userDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	dbPath := filepath.Join(userDir, ".instances.db.json")
 	db, err := openDatabase(dbPath)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
+	ctx := context.TODO()
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ec2Client := ec2.NewFromConfig(cfg)
+
 	cloudProviders := map[string]instances.CloudProvider{
-		"aws": instances.MockAWSCloud{},
+		"aws": instances.AWSCloud{Ec2Client: ec2Client},
 	}
 
 	CLI := instances.NewCLI(db, cloudProviders)

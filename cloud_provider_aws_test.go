@@ -26,6 +26,12 @@ func (m mockEC2Manager) DescribeInstanceStatus(ctx context.Context, params *ec2.
 				InstanceId:    &id,
 			}
 			out.InstanceStatuses = append(out.InstanceStatuses, status)
+		case nonRunningInstanceId:
+			status := types.InstanceStatus{
+				InstanceState: &types.InstanceState{Name: types.InstanceStateNameStopped},
+				InstanceId:    &id,
+			}
+			out.InstanceStatuses = append(out.InstanceStatuses, status)
 		}
 	}
 
@@ -34,6 +40,10 @@ func (m mockEC2Manager) DescribeInstanceStatus(ctx context.Context, params *ec2.
 
 func (m mockEC2Manager) StartInstances(ctx context.Context, params *ec2.StartInstancesInput, optFns ...func(*ec2.Options)) (*ec2.StartInstancesOutput, error) {
 	return &ec2.StartInstancesOutput{}, nil
+}
+
+func (m mockEC2Manager) StopInstances(ctx context.Context, params *ec2.StopInstancesInput, optFns ...func(*ec2.Options)) (*ec2.StopInstancesOutput, error) {
+	return &ec2.StopInstancesOutput{}, nil
 }
 
 func TestStartEC2Instance(t *testing.T) {
@@ -61,5 +71,31 @@ func TestStartEC2Instance(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestStopEC2Instance(t *testing.T) {
+	tests := map[string]struct {
+		instanceID string
+		wantErr    string
+	}{
+		// "running instance": {
+		// 	instanceID: runningInstanceId,
+		// 	wantErr:    "",
+		// },
+		"non-running instance": {
+			instanceID: nonRunningInstanceId,
+			wantErr:    "not running",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := mockEC2Manager{}
+			AWSCloud := instances.AWSCloud{Ec2Client: client}
+			err := AWSCloud.StopInstance(test.instanceID)
+			if !errorContains(err, test.wantErr) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
 }
