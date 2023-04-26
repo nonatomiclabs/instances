@@ -75,4 +75,16 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	f, err := os.OpenFile(dbPath, os.O_RDWR, 0644)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	err = db.Save(f)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
