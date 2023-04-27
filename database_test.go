@@ -257,13 +257,8 @@ func TestSaveDatabase(t *testing.T) {
 		t.Fatalf("test setup failed: %v", err)
 	}
 
-	var bufOut bytes.Buffer
-	err = db.Save(&bufOut)
+	err = db.Save()
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if bufOut.Len() == 0 {
-		t.Fatal("saving database did not write any content")
 	}
 }

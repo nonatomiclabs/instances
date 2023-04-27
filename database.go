@@ -9,28 +9,31 @@ import (
 
 type Database struct {
 	Instances map[string]Instance `json:"instances"`
+	support   io.ReadWriter
 }
 
 // NewDatabase creates a new Database populated with the content read from the given
-// io.Reader.
-func NewDatabase(r io.Reader) (*Database, error) {
-
-	var database *Database
-	err := json.NewDecoder(r).Decode(&database)
+// io.ReadWriter.
+func NewDatabase(support io.ReadWriter) (*Database, error) {
+	database := Database{
+		support: support,
+	}
+	err := json.NewDecoder(support).Decode(&database)
 	if err != nil {
-		return database, fmt.Errorf("open database: %s", err)
+		return &database, fmt.Errorf("open database: %s", err)
 	}
 
-	return database, nil
+	return &database, nil
 }
 
 // Save saves the database to the provided io.Writer.
-func (d *Database) Save(w io.Writer) error {
+func (d *Database) Save() error {
 	b, err := json.MarshalIndent(d, "", "  ")
 	if err != nil {
 		return fmt.Errorf("serialize database: %s", err)
 	}
-	_, err = w.Write(b)
+
+	_, err = d.support.Write(b)
 	if err != nil {
 		return fmt.Errorf("save database: %s", err)
 	}
